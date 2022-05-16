@@ -19,19 +19,19 @@ with app.app_context():
             user='user',
             password=hashed_password.decode('utf-8'),
         )
-
-
+        db.session.add(user)
+        db.session.commit()
 
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
-@app.route('/api/v1/register', methods=['POST'])
+@app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     print("data:", data)
     answer = register_check(data)
     return answer
-@app.route('/api/v1/usuarios', methods=['GET','DELETE'])
+@app.route('/usuarios', methods=['GET','DELETE'])
 def get_body():
     if request.method == 'GET':
         if request.args.get('id'):
