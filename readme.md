@@ -1,7 +1,7 @@
 <br />
 <div align="center">
 
-  <h3 align="center">Sistemas Distribuidos: Tarea 01</h3>
+  <h3 align="center">Sistemas Distribuidos: Tarea 02</h3>
 
   <p align="center">
     Fernando Burón, Felipe Condore
@@ -11,7 +11,7 @@
 
 ## Acerca del proyecto
 
-El objetivo de esta tarea consiste en poner en práctica los conceptos de Caché y RPC vistos en clases. Para ello se debe hacer uso de tecnlogías que permitan la solución a esta problemática
+El objetivo de esta tarea consiste en poner en práctica el concepto de Streaming, visto en clases y presentaciones. Para ello se debe hacer uso de tecnlogías que permitan la solución a esta problemática
 
 
 
@@ -19,9 +19,7 @@ El objetivo de esta tarea consiste en poner en práctica los conceptos de Caché
 
 Esta sección muestra las tecnologías con las que fue construído el proyecto.
 
-* [Node.js](https://nodejs.org/es/)
-* [gRPC](https://grpc.io)
-* [Redis](https://redis.io)
+* [Apache Kafka](https://kafka.apache.org)
 * [Postgres](https://www.postgresql.org)
 * [Python](https://www.python.org)
 * [Docker](https://www.docker.com)
@@ -32,7 +30,7 @@ Esta sección muestra las tecnologías con las que fue construído el proyecto.
 Para iniciar el proyecto, primero hay que copiar el repositorio y luego escribir el siguiente comando en la consola:
 * docker
 ```sh
-docker-compose --build -d
+docker-compose build
 ```
 Para que los contenedores se inician en el ambiente local se utiliza el siguiente comando en la consola:
 * docker
