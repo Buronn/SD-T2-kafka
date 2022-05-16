@@ -1,0 +1,36 @@
+version: '3.5'
+
+services:
+
+  db:
+    image: postgres:10.5
+    container_name: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+
+    volumes:
+      - './db/init:/docker-entrypoint-initdb.d/'
+
+  flask-api:
+    container_name: app-app
+    restart: always
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      FLASK_ENV: development
+    ports:
+      - "5000:80"
+    volumes:
+      - ./backend:/usr/src/app
+    depends_on:
+      - "db"
