@@ -4,14 +4,14 @@ from flask_sqlalchemy import SQLAlchemy, event
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 db = SQLAlchemy()
-class Usuario(db.Model):
-    __tablename__ = 'usuario'
+class User(db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
+    user = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(80), nullable=True)
     password = db.Column(db.String(256), nullable=True)
     def __repr__(self):
-        return '<Usuario %r>' % self.name
+        return '<User %r>' % self.name
 
 
 def to_dict(obj):

@@ -1,11 +1,10 @@
 from flask import Flask, jsonify, request
 
-from db.models import Usuario
+from db.models import User
 from db.models import db
 from db.models import to_dict
 from db.config import Config
 from functions import register_check
-from objects.object_functions import upload_object, delete_object
 import os
 import bcrypt
 app = Flask(__name__)
@@ -15,8 +14,8 @@ db.create_all(app=app)
 with app.app_context():
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw('pass123'.encode('utf-8'), salt)
-    if not Usuario or not Usuario.query.first():
-        usuario = Usuario(
+    if not User or not User.query.first():
+        user = User(
             user='user',
             password=hashed_password.decode('utf-8'),
         )
@@ -36,20 +35,20 @@ def register():
 def get_body():
     if request.method == 'GET':
         if request.args.get('id'):
-            usuario = Usuario.query.filter_by(id=request.args.get('id')).first()
-            if usuario:
-                return jsonify(to_dict(usuario))
+            user = User.query.filter_by(id=request.args.get('id')).first()
+            if user:
+                return jsonify(to_dict(user))
             else:
                 return jsonify({"error": "User not found"}), 404
         else:
-            usuarios = Usuario.query.all()
-            return jsonify([to_dict(usuario) for usuario in usuarios])
+            users = User.query.all()
+            return jsonify([to_dict(user) for user in users])
     elif request.method == 'DELETE':
         if request.args.get('id'):
-            usuario = Usuario.query.filter_by(id=request.args.get('id')).first()
-            if usuario:
-                user_name = usuario.name
-                db.session.delete(usuario)
+            user = User.query.filter_by(id=request.args.get('id')).first()
+            if user:
+                user_name = user.name
+                db.session.delete(user)
                 db.session.commit()
                 return jsonify({"message": "User "+user_name+" deleted"}), 200
             else:

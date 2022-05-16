@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
 
-  db:
+  data_base:
     image: postgres:10.5
     container_name: postgres
     ports:
@@ -16,7 +16,7 @@ services:
       - './db/init:/docker-entrypoint-initdb.d/'
 
   flask-api:
-    container_name: app-app
+    container_name: api
     restart: always
     build:
       context: ./backend/
@@ -33,4 +33,4 @@ services:
     volumes:
       - ./backend:/usr/src/app
     depends_on:
-      - "db"
+      - "data_base"
