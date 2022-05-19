@@ -5,6 +5,7 @@ from db.models import db
 from db.models import to_dict
 from db.config import Config
 from functions import register_check
+from kafka import KafkaProducer
 import os
 import bcrypt
 app = Flask(__name__)
@@ -22,9 +23,21 @@ with app.app_context():
         db.session.add(user)
         db.session.commit()
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data received'}), 400
+    if not data.get('user') or not data.get('password'):
+        return jsonify({'error': 'Missing data'}), 400
+    user = User.query.filter_by(user=data['user']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if not bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')):
+        return jsonify({'error': 'Wrong password'}), 401
+    return jsonify({'user': user.user, 'id': user.id}), 200
+
+
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
