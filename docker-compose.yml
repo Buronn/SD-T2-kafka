@@ -1,4 +1,4 @@
-version: "3.5"
+version: "3.7"
 
 services:
     data_base:
@@ -18,18 +18,20 @@ services:
             context: ./api/
             dockerfile: Dockerfile
         environment:
-            POSTGRES_USER: myuser
-            POSTGRES_PASSWORD: mypassword
-            POSTGRES_DB: postgres
-            POSTGRES_HOST: postgres
-            POSTGRES_PORT: 5432
-            FLASK_ENV: development
+            - POSTGRES_USER=myuser
+            - POSTGRES_PASSWORD=mypassword
+            - POSTGRES_DB=postgres
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - FLASK_ENV=development
+            - KAFKA_ADVERTISED_HOST_NAME=kafka
         ports:
             - "3000:80"
         volumes:
             - ./api:/usr/src/app
         depends_on:
             - "data_base"
+            - "kafka"
 
     flask-api-blocked:
         container_name: api-blocked
@@ -38,34 +40,34 @@ services:
             context: ./api-blocked/
             dockerfile: Dockerfile
         environment:
-            POSTGRES_USER: myuser
-            POSTGRES_PASSWORD: mypassword
-            POSTGRES_DB: postgres
-            POSTGRES_HOST: postgres
-            POSTGRES_PORT: 5432
-            FLASK_ENV: development
+            - POSTGRES_USER=myuser
+            - POSTGRES_PASSWORD=mypassword
+            - POSTGRES_DB=postgres
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - FLASK_ENV=development
+            - KAFKA_ADVERTISED_HOST_NAME=kafka
         ports:
             - "5000:80"
         volumes:
             - ./api-blocked:/usr/src/app
         depends_on:
             - "data_base"
+            - "kafka"
 
     zookeeper:
-        image: "bitnami/zookeeper:latest"
+        image: wurstmeister/zookeeper
         ports:
             - "2181:2181"
-        environment:
-            - ALLOW_ANONYMOUS_LOGIN=yes
     kafka:
-        image: "bitnami/kafka:latest"
+        image: wurstmeister/kafka
         ports:
             - "9092:9092"
         environment:
-            - KAFKA_BROKER_ID=1
-            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-            - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
-            - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-            - ALLOW_PLAINTEXT_LISTENER=yes
+            KAFKA_ADVERTISED_HOST_NAME: kafka
+            KAFKA_CREATE_TOPICS: "login:1:1"
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
         depends_on:
-            - zookeeper
+            - "zookeeper"

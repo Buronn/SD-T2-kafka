@@ -1,17 +1,29 @@
 from flask import Flask, jsonify, request
-
 from db.models import User
 from db.models import db
 from db.models import to_dict
 from db.config import Config
 from functions import register_check
-from kafka import KafkaProducer
 import os
 import bcrypt
+from aiokafka import AIOKafkaProducer
+import asyncio
+
+async def send_one(msg):
+    producer = AIOKafkaProducer(
+        bootstrap_servers="kafka:9092"
+    )
+    await producer.start()
+    try:
+        await producer.send_and_wait("login", msg.encode('utf-8'))
+    finally:
+        await producer.stop()
+
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
 db.create_all(app=app)
+
 with app.app_context():
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw('pass123'.encode('utf-8'), salt)
@@ -26,16 +38,17 @@ with app.app_context():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    if not data:
-        return jsonify({'error': 'No data received'}), 400
-    if not data.get('user') or not data.get('password'):
-        return jsonify({'error': 'Missing data'}), 400
-    user = User.query.filter_by(user=data['user']).first()
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-    if not bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')):
-        return jsonify({'error': 'Wrong password'}), 401
-    return jsonify({'user': user.user, 'id': user.id}), 200
+    # if not data:
+    #     return jsonify({'error': 'No data received'}), 400
+    # if not data.get('user') or not data.get('password'):
+    #     return jsonify({'error': 'Missing data'}), 400
+    # user = User.query.filter_by(user=data['user']).first()
+    # if not user:
+    #     return jsonify({'error': 'User not found'}), 404
+    # if not bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')):
+    #     return jsonify({'error': 'Wrong password'}), 401
+    asyncio.run(send_one(data['user']))
+    return jsonify({'success': True}), 200
 
 
 @app.route('/register', methods=['POST'])
