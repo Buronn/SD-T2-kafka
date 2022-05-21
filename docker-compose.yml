@@ -25,12 +25,14 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       FLASK_ENV: development
+      KAFKA_ADVERTISED_HOST_NAME: kafka
     ports:
       - "3000:80"
     volumes:
       - ./api:/usr/src/app
     depends_on:
       - "data_base"
+      - "kafka"
   
   flask-api-blocked:
     container_name: api-blocked
@@ -45,12 +47,14 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       FLASK_ENV: development
+      KAFKA_ADVERTISED_HOST_NAME: kafka
     ports:
       - "5000:80"
     volumes:
       - ./api-blocked:/usr/src/app
     depends_on:
       - "data_base"
+      - "kafka"
 
   zookeeper:
     image: 'bitnami/zookeeper:latest'
@@ -68,5 +72,7 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      
     depends_on:
       - zookeeper
