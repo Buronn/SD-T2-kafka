@@ -1,72 +1,71 @@
-version: '3.5'
+version: "3.5"
 
 services:
+    data_base:
+        image: postgres:10.5
+        container_name: postgres
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=myuser
+            - POSTGRES_PASSWORD=mypassword
 
-  data_base:
-    image: postgres:10.5
-    container_name: postgres
-    ports:
-      - '5432:5432'
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
+    flask-api:
+        container_name: api-login
+        restart: always
+        build:
+            context: ./api/
+            dockerfile: Dockerfile
+        environment:
+            POSTGRES_USER: myuser
+            POSTGRES_PASSWORD: mypassword
+            POSTGRES_DB: postgres
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            FLASK_ENV: development
+        ports:
+            - "3000:80"
+        volumes:
+            - ./api:/usr/src/app
+        depends_on:
+            - "data_base"
 
-  flask-api:
-    container_name: api-login
-    restart: always
-    build:
-      context: ./api/
-      dockerfile: Dockerfile
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: postgres
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      FLASK_ENV: development
-    ports:
-      - "3000:80"
-    volumes:
-      - ./api:/usr/src/app
-    depends_on:
-      - "data_base"
-  
-  flask-api-blocked:
-    container_name: api-blocked
-    restart: always
-    build:
-      context: ./api-blocked/
-      dockerfile: Dockerfile
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: postgres
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      FLASK_ENV: development
-    ports:
-      - "5000:80"
-    volumes:
-      - ./api-blocked:/usr/src/app
-    depends_on:
-      - "data_base"
+    flask-api-blocked:
+        container_name: api-blocked
+        restart: always
+        build:
+            context: ./api-blocked/
+            dockerfile: Dockerfile
+        environment:
+            POSTGRES_USER: myuser
+            POSTGRES_PASSWORD: mypassword
+            POSTGRES_DB: postgres
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            FLASK_ENV: development
+        ports:
+            - "5000:80"
+        volumes:
+            - ./api-blocked:/usr/src/app
+        depends_on:
+            - "data_base"
 
-  zookeeper:
-    image: 'bitnami/zookeeper:latest'
-    ports:
-      - '2181:2181'
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-  kafka:
-    image: 'bitnami/kafka:latest'
-    ports:
-      - '9092:9092'
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-    depends_on:
-      - zookeeper
+    zookeeper:
+        image: "bitnami/zookeeper:latest"
+        ports:
+            - "2181:2181"
+        environment:
+            - ALLOW_ANONYMOUS_LOGIN=yes
+    kafka:
+        image: "bitnami/kafka:latest"
+        ports:
+            - "9092:9092"
+        environment:
+            - KAFKA_BROKER_ID=1
+            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+            - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
+            - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+            - ALLOW_PLAINTEXT_LISTENER=yes
+        depends_on:
+            - zookeeper
