@@ -1,49 +1,66 @@
-import json
-from flask import Flask, jsonify, request
-from db.config import Config
+from flask import Flask, jsonify
 from threading import Event
-from aiokafka import AIOKafkaConsumer
-import asyncio
-import datetime
-async def consume(topic):
-    consumer = AIOKafkaConsumer(
-        topic,
-        bootstrap_servers='kafka:9092',
-        group_id=None)
-    # Get cluster layout and join group `my-group`
-    await consumer.start()
-    try:
-        # Consume messages
-        async for msg in consumer:
-            with open('data.txt', 'a') as f:
-                timestamp = msg.timestamp
-                date = datetime.datetime.fromtimestamp(timestamp / 1e3)
-                msg = msg.value.decode('utf-8')+','+str(date)+'\n'
-                f.write(msg)
-                f.close()
-                
-             
-    finally:
-        # Will leave consumer group; perform autocommit if enabled.
-        await consumer.stop()
+import signal
+import json
+import time 
 
-
+from flask_kafka.consumer import FlaskKafka
 app = Flask(__name__)
-app.config.from_object(Config)
+
+INTERRUPT_EVENT = Event()
+
+bus = FlaskKafka(INTERRUPT_EVENT,
+                 bootstrap_servers=",".join(["kafka:9092"]),
+                 group_id="consumer-grp-id"
+                 )
+
+# Register termination listener
+def listen_kill_server():
+    signal.signal(signal.SIGTERM, bus.interrupted_process)
+    signal.signal(signal.SIGINT, bus.interrupted_process)
+    signal.signal(signal.SIGQUIT, bus.interrupted_process)
+    signal.signal(signal.SIGHUP, bus.interrupted_process)
+
+counter = {}
+banned = set()
+
+# Handle message received from a Kafka topic
+@bus.handle('login')
+def process_real_time(msg):
+
+    #print("consumed {} from test-topic".format(msg))
+    val = msg.value.decode("ascii")
+    temp = {"user": val, "date": msg.timestamp}
+    
+    if val in counter:
+        current = int(time.time() * 1000)
+        for item in counter[val]:
+            print(item, current, current - item)
+        x = [a for a in counter[val] if current - a < 60*1000]
+        x.append(msg.timestamp)
+        counter[val] = x
+        if len(x) >=5:
+            banned.add(val)
+    else:
+        counter[val] = [msg.timestamp]
+    """
+    with open("sample.json", "w") as outfile:
+        json.dump(counter, outfile)
+    """
+
+
 
 @app.route('/blocked', methods=['GET'])
 def blocked():
-    with open('data.txt', 'r') as f:
-        data = f.read()
-        f.close()
-    data = data.split('\n')
-    data = list(filter(None, data))
+    print(counter)
+    #data = json.dump(counter, indent = 4)
     
-    return jsonify({'data': data})
-@app.route('/consume', methods=['GET'])
-def consumir():
-    asyncio.run(consume('login'))
+    return jsonify({"users-blocked": list(banned), "logins": counter})   
 
 if __name__ == '__main__':
-    
-    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
+    # Start consuming from the Kafka server
+    bus.run()
+    # Termination listener
+    listen_kill_server()
+    # Start Flask server
+    app.run(host='0.0.0.0', debug=True, port=5000, threaded=True)
