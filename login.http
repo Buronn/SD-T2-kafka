@@ -1,0 +1,11 @@
+POST http://localhost:3000/login HTTP/1.1
+content-type: application/json
+
+{
+    "user": "mahoma",
+    "pass": "tumama"
+}
+
+###
+GET http://localhost:5000/blocked HTTP/1.1
+content-type: application/json

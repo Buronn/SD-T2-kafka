@@ -23,7 +23,6 @@ def listen_kill_server():
     signal.signal(signal.SIGHUP, bus.interrupted_process)
 
 counter = {}
-banned = set()
 
 # Handle message received from a Kafka topic
 @bus.handle('login')
@@ -41,13 +40,21 @@ def process_real_time(msg):
         x.append(msg.timestamp)
         counter[val] = x
         if len(x) >=5:
+            
+
+            with open("blocked.json", "r") as jsonFile:
+                temp = json.load(jsonFile)
+
+            banned = set(temp["users-blocked"])
+            
             banned.add(val)
+            file_banned = list(banned)
+
+            with open("blocked.json", "w") as jsonFile:
+                json.dump(file_banned, jsonFile)
     else:
         counter[val] = [msg.timestamp]
-    """
-    with open("sample.json", "w") as outfile:
-        json.dump(counter, outfile)
-    """
+    
 
 
 
@@ -55,8 +62,10 @@ def process_real_time(msg):
 def blocked():
     print(counter)
     #data = json.dump(counter, indent = 4)
-    
-    return jsonify({"users-blocked": list(banned), "logins": counter})   
+    with open("blocked.json", "r") as jsonFile:
+        temp = json.load(jsonFile)
+    banned = temp["users-blocked"]
+    return jsonify({"users-blocked": 2})   
 
 if __name__ == '__main__':
     # Start consuming from the Kafka server
