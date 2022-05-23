@@ -27,7 +27,7 @@ Esta sección muestra las tecnologías con las que fue construído el proyecto.
 
 ## 🔰 Comenzando
 
-Para iniciar el proyecto, primero hay que copiar el repositorio y luego escribir el siguiente comando en la consola:
+Para iniciar el proyecto, primero hay que copiar el repositorio `git clone https://github.com/Buronn/SD-T2-kafka`, ingresar a él `/cd SD-T2-kafka` y escribir el siguiente comando en la consola:
 * docker
 ```sh
 docker-compose build
@@ -46,85 +46,58 @@ Tener Docker y Docker Compose instalado
 
 ## 🤝 Uso
 
-La aplicación tiene una API, que a través del método GET se pueden hacer las siguientes consultas:
+La aplicación tiene dos API dispoble, una en el puerto 3000 (LOGIN) y otra en el 5000 (BLOCKED).
 
-### Query
-Busca el inventario según la coincidencia de la palabra otorgada, busca en Cache y luego en la Base de Datos.
-```curl
-curl −−location −−request GET http://localhost:3000/inventory/search?q=Disk
+### API-LOGIN
+Inicia sesión, si se hace 5 inicios incorrectos, en [API-BLOCKED](./readme.md/###API-BLOCKED)
+```sh
+curl --location --request POST http://localhost:3000/login \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user":"user",
+    "password":"password"
+}'
 ```
 #### 
-- ☄METODO: GET
-- 🔑KEY: q
-- 📃VALUE: \<palabra a buscar\>
+- ☄ MÉTODO: POST
+- ❔   CONTENT-TYPE: application/json
+- 📄  DATA-RAW: user y password en formato json
 
 #### Response example
 ```js
+// En caso de colocar una contraseña incorrecta
 {
-    "items": [
-        {
-            "id": 10,
-            "name": "SanDisk SSD PLUS 1TB Internal SSD - SATA III 6 Gb/s",
-            "price": 109,
-            "category": "electronics",
-            "count": 470
-        }
-    ]
+    "error":"Wrong password"
+}
+// En caso de colocar correctamente los datos
+{
+    "success":True
 }
 ```
-### Reset
-Borra el cache de Redis.
-```curl
-curl −−location −−request GET http://localhost:3000/reset
-```
-#### Response
-```sh
-Cache flushed
-```
 
-### Keys
-Muestra las Keys que ha guardado el cache.
-```curl
-curl −−location −−request GET http://localhost:3000/keys
+### API-BLOCKED
+Muestra los usuarios bloqueados por muchos intentos fallidos
+```sh
+curl −−location −−request GET http://localhost:5000/blocked
 ```
+#### 
+- ☄ MÉTODO: GET
 #### Response
 ```js
 [
-    "SSD",
-    "Slim",
-    "Mens",
-    "Disk",
-    "6"
+    "users-blocked":[
+      "user1",
+      "user2"
+    ]
 ]
 ```
-## Comparación algoritmos de remoción
-Para llevar a cabo una comparación entre los algoritmos se preparó un bash script que se puede correr desde cualquier contenedor o ambiente de linux. El archivo corresponde a request.sh, y realiza una serie de peticiones http a través del comando curl, donde el output corresponde a la palabra que se busca en la API Rest y el tiempo en milisegundos que se demora en realizar la petición.
-```sh
-bash requests.sh
-```
-Cabe destacar que para comparar los distintos algoritmos es necesario cambiar la política de remoción del contenedor de redis. Para ello basta cambiar la variable de entorno maxmemorypolicy entre `allkeys-lru` y `allkeys-lfu` que se encuentra en el archivo .env, e ir aplicando los cambios usando `docker-compose up -d` cada vez que se ejecutará el bash script.
-### Características
-| LFU | LRU |
-| ------------- | ------------- |
-| Remueve el ítem menos utilizado. | Remuevo el ítem que menos se ha usado reciéntemente. |
-| Debe mantener una cola para registrar todos los registros de acceso a datos, y cada información debe mantener un recuento de referencia. | Por cada hit dado en cache se deben buscar el dato pedido y actualizar el encabezado. |
-| Prioriza la ítems más accedidos a largo plazo. | Prioriza los ítems más recientes en el caché. |
+## ❔ Preguntas
 
-### Mediciones
-#### Sin cache
-| Palabra | LFU | LRU |
-| ------------- | ------------- | ------------- |
-| Disk | 7.922000 ms | 7.295000 ms |
-| SSD | 6.721000 ms | 6.751000 ms |
-| SATA | 6.792000 ms | 7.398000 ms |
-| Mens | 7.133000 ms | 7.346000 ms |
-| a | 7.206000 ms | 7.283000 ms |
+####
+### 1 ¿Por qué Kafka funciona bien en este escenario?
+#### Debido a que
+### 2 Basado en las tecnolog ıas que usted tiene a su disposición (Kafka, backend) ¿Qué haría usted para manejar una gran cantidad de usuarios al mismo tiempo?
+####
 
-#### Con cache
-| Palabra | LFU | LRU |
-| ------------- | ------------- | ------------- |
-| Disk | 2.413000 ms | 2.251000 ms |
-| SSD | 2.234000 ms | 2.940000 ms |
-| SATA | 3.149000 ms | 2.091000 ms |
-| Mens | 2.131000 ms | 2.188000 ms |
-| a | 3.182000 ms | 2.749000 ms |
+## ℹ Información Importante
+El uso de las imágenes de [Bitnami](https://hub.docker.com/u/bitnami) fueron reemplazadas por [wurstmeister](https://hub.docker.com/u/wurstmeister) por el simple hecho de que la utilización de [AIOKafka](https://github.com/aio-libs/aiokafka) no permitía establecer una conexión con el contenedor de Kafka. Esta librería de Python permite utilizar Kafka de manera asincrónica, exactamente lo que se requería para combinar Flask con un KafkaProducer.
