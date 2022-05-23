@@ -55,7 +55,7 @@ curl --location --request POST http://localhost:3000/login \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "user":"user",
-    "password":"password"
+    "pass":"password"
 }'
 ```
 #### 
@@ -74,7 +74,15 @@ curl --location --request POST http://localhost:3000/login \
     "success":True
 }
 ```
-
+En caso de que se deba registrar un usuario, utilizar la siguiente petición:
+```sh
+curl --location --request POST 'localhost:3000/register' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user":"test",
+    "pass":"test1234"
+}'
+```
 ### API-BLOCKED
 Muestra los usuarios bloqueados por muchos intentos fallidos
 ```sh
