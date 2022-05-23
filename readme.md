@@ -104,7 +104,7 @@ curl −−location −−request GET http://localhost:5000/blocked
 ####
 ### 1 ¿Por qué Kafka funciona bien en este escenario?
 #### Debido a que
-### 2 Basado en las tecnolog ıas que usted tiene a su disposición (Kafka, backend) ¿Qué haría usted para manejar una gran cantidad de usuarios al mismo tiempo?
+### 2 Basado en las tecnologías que usted tiene a su disposición (Kafka, backend) ¿Qué haría usted para manejar una gran cantidad de usuarios al mismo tiempo?
 ####
 
 ## ℹ Información Importante
