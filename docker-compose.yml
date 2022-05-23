@@ -29,6 +29,7 @@ services:
             - "3000:80"
         volumes:
             - ./api:/usr/src/app
+            - ./storage:/tmp/storage
         depends_on:
             - "data_base"
             - "kafka"
@@ -52,6 +53,7 @@ services:
             - "5004:5004"
         volumes:
             - ./api-blocked:/usr/src/app
+            - ./storage:/tmp/storage
         depends_on:
             - "data_base"
             - "kafka"

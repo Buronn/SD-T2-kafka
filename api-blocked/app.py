@@ -42,16 +42,16 @@ def process_real_time(msg):
         if len(x) >=5:
             
 
-            with open("blocked.json", "r") as jsonFile:
+            with open("/tmp/storage/blocked.json", "r") as jsonFile:
                 temp = json.load(jsonFile)
 
             banned = set(temp["users-blocked"])
             
             banned.add(val)
             file_banned = list(banned)
-
-            with open("blocked.json", "w") as jsonFile:
-                json.dump(file_banned, jsonFile)
+            temp["users-blocked"] = file_banned
+            with open("/tmp/storage/blocked.json", "w") as jsonFile:
+                json.dump(temp, jsonFile)
     else:
         counter[val] = [msg.timestamp]
     
@@ -62,10 +62,10 @@ def process_real_time(msg):
 def blocked():
     print(counter)
     #data = json.dump(counter, indent = 4)
-    with open("blocked.json", "r") as jsonFile:
+    with open("/tmp/storage/blocked.json", "r") as jsonFile:
         temp = json.load(jsonFile)
     banned = temp["users-blocked"]
-    return jsonify({"users-blocked": 2})   
+    return jsonify({"users-blocked": banned})   
 
 if __name__ == '__main__':
     # Start consuming from the Kafka server

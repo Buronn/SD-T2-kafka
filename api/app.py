@@ -8,14 +8,19 @@ import os
 import bcrypt
 from aiokafka import AIOKafkaProducer
 import asyncio
+import requests
+import json
 
 async def send_one(msg):
     producer = AIOKafkaProducer(
         bootstrap_servers="kafka:9092"
     )
-    await producer.start()
+    
     try:
+        await producer.start()
         await producer.send_and_wait("login", msg.encode('utf-8'))
+    except Exception as e:
+        print("Error: " + str(e))
     finally:
         await producer.stop()
 
@@ -38,16 +43,25 @@ with app.app_context():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    # if not data:
-    #     return jsonify({'error': 'No data received'}), 400
-    # if not data.get('user') or not data.get('password'):
-    #     return jsonify({'error': 'Missing data'}), 400
-    # user = User.query.filter_by(user=data['user']).first()
-    # if not user:
-    #     return jsonify({'error': 'User not found'}), 404
-    # if not bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')):
-    #     return jsonify({'error': 'Wrong password'}), 401
-    asyncio.run(send_one(data['user']))
+    if not data:
+        return jsonify({'error': 'No data received'}), 400
+    if not data.get('user') or not data.get('pass'):
+        return jsonify({'error': 'Missing data'}), 400
+    user = User.query.filter_by(user=data['user']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    response = requests.get("http://flask-api-blocked:5000/blocked")
+    
+    response = response.json()
+    banned_users = response["users-blocked"]
+    
+    if data['user'] in banned_users:
+        return jsonify({'error': 'User Banned'}), 400    
+    if not bcrypt.checkpw(data['pass'].encode('utf-8'), user.password.encode('utf-8')):
+        asyncio.run(send_one(data['user']))
+        return jsonify({'error': 'Wrong password'}), 401
+    
     return jsonify({'success': True}), 200
 
 

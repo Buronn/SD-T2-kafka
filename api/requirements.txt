@@ -6,3 +6,4 @@ bcrypt==3.2.2
 flask-login
 pycryptodome==3.10.1
 aiokafka
+requests
