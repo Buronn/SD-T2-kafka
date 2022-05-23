@@ -84,12 +84,12 @@ curl −−location −−request GET http://localhost:5000/blocked
 - ☄ MÉTODO: GET
 #### Response
 ```js
-[
+{
     "users-blocked":[
       "user1",
       "user2"
     ]
-]
+}
 ```
 ## ❔ Preguntas
 
