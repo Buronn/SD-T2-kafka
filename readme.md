@@ -101,12 +101,12 @@ curl −−location −−request GET http://localhost:5000/blocked
 ```
 ## ❔ Preguntas
 
-### 1 ¿Por qué Kafka funciona bien en este escenario?
+### 1. ¿Por qué Kafka funciona bien en este escenario?
 Kafka es un software que permite el flujo y envío de información en gran volumen a través de su sistema de tópicos (brokers). Esto último permite a los servicios de Login y Bloqueo trabajar de manera asíncrona gracias al modelo productor/consumidor, dado que el servicio de Login es capaz de informar en el tópico de kafka cuales son las cuentas que han tratado de iniciar sesión de manera fallida, sin necesidad de esperar a que el servicio de bloqueo realice alguna acción, puesto que kafka se encarga de almacenar esto en el tópico el cual puede ser consumido por el servicio de Bloqueo en cualquier otro momento. 
 
 Esto se traduce en un menor tiempo de respuesta para el usuario que esté utilizando el cliente o aplicación, ya que de no utilizar kafka la aplicación estaría esperando la respuesta del servicio de bloqueo (parecido a un modelo cliente/servidor) que en términos de escalabilidad resulta ineficiente, generando un cuello de botella que colapsaría este servicio.
 
-### 2 Basado en las tecnologías que usted tiene a su disposición (Kafka, backend) ¿Qué haría usted para manejar una gran cantidad de usuarios al mismo tiempo?
+### 2. Basado en las tecnologías que usted tiene a su disposición (Kafka, backend) ¿Qué haría usted para manejar una gran cantidad de usuarios al mismo tiempo?
 Una opción inicial sería escalar kafka con más brokers o equipos de manera distribuida para lograr comunicar una mayor cantidad de datos en tiempo real. Adicional a esto último, también sería una buena opción distribuir el servicio de bloqueos agregando los siguientes servicios.
 
 ####
