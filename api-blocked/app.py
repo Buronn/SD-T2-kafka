@@ -4,6 +4,7 @@ from threading import Event
 import signal
 import json
 import time 
+import os
 
 from flask_kafka.consumer import FlaskKafka
 app = Flask(__name__)
@@ -24,6 +25,25 @@ def listen_kill_server():
 
 counter = {}
 
+def checkJSON():
+    createJSONFile = False
+    if os.path.isfile('/tmp/storage/blocked.json'):
+        with open("/tmp/storage/blocked.json", "r") as jsonFile:
+            temp = json.load(jsonFile)
+        if not (type(temp) is dict):
+            createJSONFile = True
+        elif "users-blocked" not in list(temp.keys()):
+            createJSONFile = True
+        elif not (type(temp["users-blocked"]) is list):
+            createJSONFile = True
+    else:
+        createJSONFile = True
+
+    if createJSONFile:
+        with open("/tmp/storage/blocked.json", "w") as jsonFile:
+            json.dump({"users-blocked": []}, jsonFile)
+
+
 # Handle message received from a Kafka topic
 @bus.handle('login')
 def process_real_time(msg):
@@ -41,7 +61,7 @@ def process_real_time(msg):
         counter[val] = x
         if len(x) >=5:
             
-
+            checkJSON()
             with open("/tmp/storage/blocked.json", "r") as jsonFile:
                 temp = json.load(jsonFile)
 
@@ -60,14 +80,14 @@ def process_real_time(msg):
 
 @app.route('/blocked', methods=['GET'])
 def blocked():
-    print(counter)
-    #data = json.dump(counter, indent = 4)
+    checkJSON()
     with open("/tmp/storage/blocked.json", "r") as jsonFile:
         temp = json.load(jsonFile)
     banned = temp["users-blocked"]
     return jsonify({"users-blocked": banned})   
 
 if __name__ == '__main__':
+    checkJSON()
     # Start consuming from the Kafka server
     bus.run()
     # Termination listener
