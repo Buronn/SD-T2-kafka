@@ -49,7 +49,7 @@ Tener Docker y Docker Compose instalado
 La aplicación tiene dos API dispoble, una en el puerto 3000 (LOGIN) y otra en el 5000 (BLOCKED).
 
 ### API-LOGIN
-Inicia sesión, si se hace 5 inicios incorrectos, en [API-BLOCKED](###API-BLOCKED)
+Inicia sesión, si se hace 5 inicios incorrectos, en [API-BLOCKED](###-API-BLOCKED)
 ```sh
 curl --location --request POST http://localhost:3000/login \
 --header 'Content-Type: application/json' \
